@@ -40,8 +40,30 @@ async function run() {
       .db("MoblieMarket")
       .collection("Categories");
     const bookingCollection = client.db("MoblieMarket").collection("Bookings");
+    const productCollection = client.db("MoblieMarket").collection("Products");
 
     //get api
+    //get categories api
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const categories = await categoryCollection.find(query).toArray();
+      res.send(categories);
+    });
+    //get myproducts-seller api
+    app.get("/myproducts", async (req, res) => {
+      const email = req.query.email;
+      const query = { sellerEmail: email };
+      const products = await productCollection
+        .find(query)
+        .project({
+          productName: 1,
+          price: 1,
+          postDate: 1,
+          isSold: 1,
+        })
+        .toArray();
+      res.send(products);
+    });
 
     //get users api
     app.get("/users", async (req, res) => {
@@ -54,7 +76,7 @@ async function run() {
       const query = { email: email };
       const user = await userCollection.findOne(query);
       if (user) {
-        const token = jwt.sign({ email }, process.env, TOKEN_SECRET, {
+        const token = jwt.sign({ email }, process.env.TOKEN_SECRET, {
           expiresIn: "1d",
         });
         res.send({ token });
@@ -67,6 +89,11 @@ async function run() {
     app.post("/bookings", async (req, res) => {
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      const result = await productCollection.insertOne(product);
       res.send(result);
     });
     //put api
@@ -92,9 +119,9 @@ async function run() {
 run().catch((error) => console.log(error));
 
 app.get("/", (req, res) => {
-  res.send("Login with Jwt Running.....");
+  res.send("Mobile Market Server is Running.....");
 });
 
 app.listen(port, () => {
-  console.log("login with jwt running on port ", port);
+  console.log("Mobile Market Server is Running on Port ", port);
 });
