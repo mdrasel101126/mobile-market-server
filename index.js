@@ -3,7 +3,7 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -151,6 +151,31 @@ async function run() {
         options
       );
       res.send(result);
+    });
+    //update seller verification
+    app.put("/verifySeller/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: { sellerVerified: true },
+      };
+      const updtaeUser = await userCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      const seller = await userCollection.findOne(filter);
+      const sellerEmail = seller.email;
+      const query = {
+        sellerEmail: sellerEmail,
+      };
+      const updateProducts = await productCollection.updateMany(
+        query,
+        updatedDoc,
+        options
+      );
+      res.send(updtaeUser);
     });
   } finally {
     //server never stopped
