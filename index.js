@@ -49,10 +49,20 @@ async function run() {
       const categories = await categoryCollection.find(query).toArray();
       res.send(categories);
     });
+    // get showCategoryProducts api
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        categoryId: id,
+      };
+      const products = await productCollection.find(query).toArray();
+      res.send(products);
+    });
     //get myproducts-seller api
     app.get("/myproducts", async (req, res) => {
       const email = req.query.email;
       const query = { sellerEmail: email };
+      //have to modified
       const products = await productCollection
         .find(query)
         .project({
@@ -63,6 +73,13 @@ async function run() {
         })
         .toArray();
       res.send(products);
+    });
+    //get bookings for a user
+    app.get("/bookings", async (req, res) => {
+      const email = req.query.email;
+      const query = { userEmail: email };
+      const bookings = await bookingCollection.find(query).toArray();
+      res.send(bookings);
     });
 
     //get users api
@@ -93,6 +110,17 @@ async function run() {
     });
     app.post("/products", async (req, res) => {
       const product = req.body;
+      const sellerEmail = product.sellerEmail;
+      const query = {
+        email: sellerEmail,
+      };
+      const seller = await userCollection.findOne(query);
+
+      if (seller?.verified) {
+        product.sellerVerified = true;
+      } else {
+        product.sellerVerified = false;
+      }
       const result = await productCollection.insertOne(product);
       res.send(result);
     });
