@@ -88,6 +88,18 @@ async function run() {
       const users = await userCollection.find(query).toArray();
       res.send(users);
     });
+    //get all buyer api
+    app.get("/allbuyer", async (req, res) => {
+      const query = { role: { $in: ["user"] } };
+      const allbuyer = await userCollection.find(query).toArray();
+      res.send(allbuyer);
+    });
+    //get all seller api
+    app.get("/allseller", async (req, res) => {
+      const query = { role: { $in: ["seller"] } };
+      const allseller = await userCollection.find(query).toArray();
+      res.send(allseller);
+    });
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
