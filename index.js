@@ -117,6 +117,18 @@ async function run() {
     //post booking
     app.post("/bookings", async (req, res) => {
       const booking = req.body;
+      const query = {
+        userEmail: booking.userEmail,
+        productId: booking.productId,
+      };
+      const alredyBooked = await bookingCollection.findOne(query);
+      if (alredyBooked) {
+        return res.send({
+          acknowledged: false,
+          message: "You Already Booked This Product",
+        });
+      }
+
       const result = await bookingCollection.insertOne(booking);
       res.send(result);
     });
@@ -180,7 +192,7 @@ async function run() {
 
     //delete api
     //delete seller
-    app.delete("/deleteSeller/:id", async (req, res) => {
+    app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await userCollection.deleteOne(query);
