@@ -99,9 +99,13 @@ async function run() {
       res.send(products);
     });
     //get bookings for a user
-    app.get("/bookings", async (req, res) => {
+    app.get("/bookings", verifyJWT, async (req, res) => {
+      const decoded = req.decoded;
+      //console.log(req.headers.authorization);
       const email = req.query.email;
-      console.log(email);
+      if (decoded.email !== email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
       const query = { userEmail: email };
       const bookings = await bookingCollection.find(query).toArray();
       res.send(bookings);
