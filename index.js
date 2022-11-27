@@ -97,6 +97,26 @@ async function run() {
       const users = await userCollection.find(query).toArray();
       res.send(users);
     });
+    //get admin api
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      res.send({ isAdmin: user?.role === "admin" });
+    });
+    //get admin api
+    app.get("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await userCollection.findOne(query);
+      res.send({ isSeller: user?.role === "seller" });
+    });
+    app.get("/users/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await userCollection.findOne(query);
+      res.send({ isUser: user?.role === "user" });
+    });
     //get all buyer api
     app.get("/allbuyer", async (req, res) => {
       const query = { role: { $in: ["user"] } };
