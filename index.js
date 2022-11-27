@@ -42,6 +42,7 @@ async function run() {
       .collection("Categories");
     const bookingCollection = client.db("MoblieMarket").collection("Bookings");
     const productCollection = client.db("MoblieMarket").collection("Products");
+    const paymentCollection = client.db("MoblieMarket").collection("Payments");
 
     //get api
     //get categories api
@@ -156,7 +157,7 @@ async function run() {
       const result = await productCollection.insertOne(product);
       res.send(result);
     });
-    //post stripe payment
+    //post stripe payment intent
     app.post("/create-payment-intent", async (req, res) => {
       const booking = req.body;
       const amount = booking.price * 100;
@@ -168,6 +169,44 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+    //post payment
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentCollection.insertOne(payment);
+      const bookingId = payment.bookingId;
+      const filter = { _id: ObjectId(bookingId) };
+      const options = { upsert: true };
+      const updatedDocBook = {
+        $set: {
+          isSold: true,
+          paid: true,
+        },
+      };
+      const updatedBooking = await bookingCollection.updateOne(
+        filter,
+        updatedDocBook,
+        options
+      );
+      const productId = payment.productId;
+
+      const query = { _id: ObjectId(productId) };
+      const updatedDoc = {
+        $set: {
+          isSold: true,
+        },
+      };
+      const updatedBookings = await bookingCollection.updateMany(
+        query,
+        updatedDoc,
+        options
+      );
+      const updatedProduct = await productCollection.updateOne(
+        query,
+        updatedDoc,
+        options
+      );
+      res.send(result);
     });
     //put api
     //put users api
