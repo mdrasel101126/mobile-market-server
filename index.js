@@ -104,7 +104,7 @@ async function run() {
       //console.log(req.headers.authorization);
       const email = req.query.email;
       if (decoded.email !== email) {
-        return res.status(403).send({ message: "forbidden access" });
+        res.status(403).send({ message: "forbidden access" });
       }
       const query = { userEmail: email };
       const bookings = await bookingCollection.find(query).toArray();
@@ -145,7 +145,7 @@ async function run() {
       res.send({ isUser: user?.role === "user" });
     });
     //get all buyer api
-    app.get("/allbuyer", async (req, res) => {
+    app.get("/allbuyer", verifyJWT, verifyAdmin, async (req, res) => {
       const query = { role: { $in: ["user"] } };
       const allbuyer = await userCollection.find(query).toArray();
       res.send(allbuyer);
@@ -299,10 +299,16 @@ async function run() {
 
     //delete api
     //delete seller
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
