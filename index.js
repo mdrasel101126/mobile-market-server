@@ -78,6 +78,7 @@ async function run() {
       const id = req.params.id;
       const query = {
         categoryId: id,
+        isSold: false,
       };
       const products = await productCollection.find(query).toArray();
       res.send(products);
@@ -168,6 +169,15 @@ async function run() {
       } else {
         res.status(403).send({ message: "forbidden access" });
       }
+    });
+    //get advertise items
+    app.get("/advertised", async (req, res) => {
+      const query = {
+        isSold: false,
+        advertised: true,
+      };
+      const products = await productCollection.find(query).toArray();
+      res.send(products);
     });
     //post api
     //post booking
