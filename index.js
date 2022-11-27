@@ -44,6 +44,28 @@ async function run() {
     const productCollection = client.db("MoblieMarket").collection("Products");
     const paymentCollection = client.db("MoblieMarket").collection("Payments");
 
+    //using verification after jwt verify
+    const verifyAdmin = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await userCollection.findOne(query);
+
+      if (user?.role !== "admin") {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+    const verifySeller = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await userCollection.findOne(query);
+
+      if (user?.role !== "seller") {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
     //get api
     //get categories api
     app.get("/categories", async (req, res) => {
