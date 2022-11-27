@@ -296,6 +296,25 @@ async function run() {
       );
       res.send(updtaeUser);
     });
+    //update specific product
+    app.put("/products/:id", verifyJWT, verifySeller, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const alredyAdvertised = await productCollection.findOne(query);
+      if (alredyAdvertised?.advertised) {
+        return res.send({
+          acknowledged: false,
+          message: "Sorry! This Product Already Advertised",
+        });
+      }
+      const updatedDoc = {
+        $set: {
+          advertised: true,
+        },
+      };
+      const result = await productCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
 
     //delete api
     //delete seller
@@ -305,6 +324,7 @@ async function run() {
       const result = await userCollection.deleteOne(query);
       res.send(result);
     });
+    //delete specific product
     app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
