@@ -133,11 +133,11 @@ async function run() {
     });
 
     //get users api
-    app.get("/users", async (req, res) => {
+    /*  app.get("/users", async (req, res) => {
       const query = {};
       const users = await userCollection.find(query).toArray();
       res.send(users);
-    });
+    }); */
     //get admin api
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
