@@ -43,6 +43,9 @@ async function run() {
     const bookingCollection = client.db("MoblieMarket").collection("Bookings");
     const productCollection = client.db("MoblieMarket").collection("Products");
     const paymentCollection = client.db("MoblieMarket").collection("Payments");
+    const reportedProductCollection = client
+      .db("MoblieMarket")
+      .collection("reportedProducts");
 
     //using verification after jwt verify
     const verifyAdmin = async (req, res, next) => {
@@ -61,6 +64,16 @@ async function run() {
       const user = await userCollection.findOne(query);
 
       if (user?.role !== "seller") {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+    const verifyUser = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await userCollection.findOne(query);
+
+      if (user?.role !== "user") {
         return res.status(403).send({ message: "forbidden access" });
       }
       next();
@@ -177,6 +190,11 @@ async function run() {
         advertised: true,
       };
       const products = await productCollection.find(query).toArray();
+      res.send(products);
+    });
+    app.get("/reportedItems", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = {};
+      const products = await reportedProductCollection.find(query).toArray();
       res.send(products);
     });
     //post api
@@ -325,6 +343,21 @@ async function run() {
       const result = await productCollection.updateOne(query, updatedDoc);
       res.send(result);
     });
+    // put reported items
+    app.put("/reportedItems", verifyJWT, verifyUser, async (req, res) => {
+      const product = req.body;
+      const filter = { productId: product.productId };
+      const updatedDoc = {
+        $set: product,
+      };
+      const options = { upsert: true };
+      const result = await reportedProductCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
 
     //delete api
     //delete seller
@@ -341,6 +374,21 @@ async function run() {
       const result = await productCollection.deleteOne(query);
       res.send(result);
     });
+    //delete reported products api
+    app.delete(
+      "/reportedItems/:id",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const reportedProduct = await reportedProductCollection.findOne(query);
+        const filter = { _id: ObjectId(reportedProduct?.productId) };
+        const deletedFromProduct = await productCollection.deleteOne(filter);
+        const result = await reportedProductCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
   } finally {
     //server never stopped
   }
