@@ -216,7 +216,7 @@ async function run() {
       const result = await bookingCollection.insertOne(booking);
       res.send(result);
     });
-    app.post("/products", async (req, res) => {
+    app.post("/products", verifyJWT, verifySeller, async (req, res) => {
       const product = req.body;
       const sellerEmail = product.sellerEmail;
       const query = {
